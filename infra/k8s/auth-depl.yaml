@@ -1,0 +1,97 @@
+# Deployment for the auth service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: auth
+  template:
+    metadata:
+      labels:
+        component: auth
+    spec:
+      containers:
+        - name: auth
+          image: erashishchawla/zaptalk/auth
+          ports:
+            - containerPort: 3000
+          env:
+            - name: ACCESS_TOKEN_SECRET
+              value: "secret"
+            - name: REFRESH_TOKEN_SECRET
+              value: "secret"
+            - name: DB_HOST
+              value: auth-db-srv
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              value: example
+            - name: DB_NAME
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+---
+# ClusterIP service for the auth service
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-srv
+spec:
+  selector:
+    component: auth
+  ports:
+    - name: auth
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+
+---
+# auth database deployment, we will use postgres
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-db-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: auth-db
+  template:
+    metadata:
+      labels:
+        component: auth-db
+    spec:
+      containers:
+        - name: auth-db
+          image: postgres
+          env:
+            # - name: POSTGRES_HOST
+            #   value: auth-db-srv
+            # - name: POSTGRES_PORT
+            #   value: "5432"
+            # - name: POSTGRES_USER
+            #   value: postgres
+            - name: POSTGRES_PASSWORD
+              value: example
+            # - name: POSTGRES_DB
+            #   value: auth
+          ports:
+            - containerPort: 5432
+
+---
+# ClusterIP service for the auth database
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db-srv
+spec:
+  selector:
+    component: auth-db
+  ports:
+    - name: auth-db
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

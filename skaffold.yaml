@@ -1,0 +1,27 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: zaptalk
+build:
+  local:
+    push: false
+  artifacts:
+    - image: erashishchawla/zaptalk/gateway
+      context: services/gateway
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "**/*.ts"
+            dest: .
+    - image: erashishchawla/zaptalk/auth
+      context: services/auth
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "**/*.ts"
+            dest: .
+manifests:
+  rawYaml:
+    - infra/k8s/*

@@ -1,0 +1,39 @@
+# Deployment for the gateway service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: erashishchawla/zaptalk/gateway
+          ports:
+            - containerPort: 3000
+          env:
+            - name: ACCESS_TOKEN_SECRET
+              value: "secret"
+            - name: REFRESH_TOKEN_SECRET
+              value: "secret"
+---
+# ClusterIP service for the gateway service
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-srv
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: gateway
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
