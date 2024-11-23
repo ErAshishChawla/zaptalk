@@ -1,5 +1,4 @@
 import { Roles, FileUploadStatus } from "@eraczaptalk/zaptalk-common";
-import { create } from "domain";
 import {
   Entity,
   Column,
@@ -8,6 +7,14 @@ import {
   UpdateDateColumn,
   Index,
 } from "typeorm";
+import { nanoid } from "nanoid";
+import { DateTime } from "luxon";
+import bcrypt from "bcryptjs";
+
+interface UserCreationAttributes {
+  email: string;
+  password: string;
+}
 
 @Entity()
 export class User {
@@ -22,25 +29,25 @@ export class User {
   password: string;
 
   @Column({ nullable: true, default: null })
-  firstName: string;
+  firstName?: string;
 
   @Column({ nullable: true, default: null })
-  lastName: string;
+  lastName?: string;
 
   @Column("enum", { enum: Roles, default: Roles.USER })
   role: Roles;
 
   @Column("text", { nullable: true, default: null })
-  verificationToken: string;
+  verificationToken?: string;
 
   @Column("text", { nullable: true, default: null })
-  verificationTokenExpiry: string;
+  verificationTokenExpiry?: string;
 
   @Column("text", { nullable: true, default: null })
-  resetPasswordToken: string;
+  resetPasswordToken?: string;
 
   @Column("text", { nullable: true, default: null })
-  resetPasswordTokenExpiry: string;
+  resetPasswordTokenExpiry?: string;
 
   @Column("boolean", { default: false })
   isVerified: boolean;
@@ -69,7 +76,16 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  JSON() {
+  static build(attrs: UserCreationAttributes) {
+    const user = new User();
+    user.email = attrs.email;
+    user.password = bcrypt.hashSync(attrs.password, 10);
+    user.verificationToken = nanoid();
+    user.verificationTokenExpiry = DateTime.now().plus({ hours: 24 }).toISO();
+    return user;
+  }
+
+  toJSON() {
     return {
       id: this.id,
       email: this.email,

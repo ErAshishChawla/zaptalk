@@ -8,10 +8,7 @@ async function init() {
     while (true) {
       try {
         await AppDataSource.initialize();
-        console.log("Connected to the database");
-
-        // AppDataSource.synchronize();
-
+        winstonLogger.info("Connected to the database");
         break;
       } catch (error) {
         winstonLogger.error("Failed to connect to the database");
