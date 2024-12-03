@@ -1,4 +1,4 @@
-import { RabbitMQ } from "./utils/rabbitmq";
+import { RabbitMQ } from "@eraczaptalk/zaptalk-common";
 import { keys } from "./utils/keys";
 import { winstonLogger } from "./utils/logger";
 

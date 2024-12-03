@@ -1,6 +1,6 @@
-import { EnvKeys } from "@eraczaptalk/zaptalk-common";
+import { IEnvKeys } from "@eraczaptalk/zaptalk-common";
 
-export const keys: EnvKeys = {
+export const keys: IEnvKeys = {
   ACCESS_TOKEN_SECRET: {
     required: true,
     value: process.env.ACCESS_TOKEN_SECRET,

@@ -1,9 +1,8 @@
-import { Express, Request, Response, NextFunction } from "express";
+import { Express } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { NotFoundError, requireAuth } from "@eraczaptalk/zaptalk-common";
 
 import { config } from "../config/config";
-import { on } from "winston-daily-rotate-file";
 
 const { routes } = config;
 

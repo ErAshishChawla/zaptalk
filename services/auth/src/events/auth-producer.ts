@@ -1,15 +1,11 @@
 import {
-  BaseEvent,
-  EventQueue,
+  IAuthServiceEvent,
   QueueProducer,
-  UserPayload,
+  EventQueue,
 } from "@eraczaptalk/zaptalk-common";
 import { Connection } from "amqplib";
 
-export class AuthProducer extends QueueProducer<
-  BaseEvent<UserPayload>,
-  UserPayload
-> {
+export class AuthProducer extends QueueProducer<IAuthServiceEvent> {
   static instance: AuthProducer;
   queueName: EventQueue.authQueue = EventQueue.authQueue;
 

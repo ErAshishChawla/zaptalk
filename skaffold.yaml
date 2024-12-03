@@ -22,8 +22,8 @@ build:
         manual:
           - src: "**/*.ts"
             dest: .
-    - image: erashishchawla/zaptalk/auth-events-consumer
-      context: services/auth-events-consumer
+    - image: erashishchawla/zaptalk/auth-events-rabbitmq-consumer
+      context: services/auth-events-rabbitmq-consumer
       docker:
         dockerfile: Dockerfile
       sync:

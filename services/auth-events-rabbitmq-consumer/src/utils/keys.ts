@@ -1,6 +1,6 @@
-import { EnvKeys } from "@eraczaptalk/zaptalk-common";
+import { IEnvKeys } from "@eraczaptalk/zaptalk-common";
 
-export const keys: EnvKeys = {
+export const keys: IEnvKeys = {
   RABBITMQ_HOST: {
     required: true,
     value: process.env.RABBITMQ_HOST,

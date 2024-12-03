@@ -106,20 +106,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-events-consumer
+  name: auth-events-rabbitmq-consumer-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: auth-events-consumer
+      component: auth-events-rabbitmq-consumer
   template:
     metadata:
       labels:
-        component: auth-events-consumer
+        component: auth-events-rabbitmq-consumer
     spec:
       containers:
-        - name: auth-events-consumer
-          image: erashishchawla/zaptalk/auth-events-consumer
+        - name: auth-events-rabbitmq-consumer
+          image: erashishchawla/zaptalk/auth-events-rabbitmq-consumer
           env:
             - name: RABBITMQ_HOST
               value: rabbitmq-srv

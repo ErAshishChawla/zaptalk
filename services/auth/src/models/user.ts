@@ -1,21 +1,9 @@
 import { nanoid } from "nanoid";
 import { DateTime } from "luxon";
 import bcrypt from "bcryptjs";
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  Index,
-} from "typeorm";
+import { Entity } from "typeorm";
 
-import {
-  UserPayload,
-  Roles,
-  FileUploadStatus,
-  UserEntity,
-} from "@eraczaptalk/zaptalk-common";
+import { IUserPayload, UserEntity } from "@eraczaptalk/zaptalk-common";
 
 interface UserCreationAttributes {
   email: string;
@@ -33,7 +21,7 @@ export class User extends UserEntity {
     return user;
   }
 
-  async toJSON(): Promise<UserPayload> {
+  async toJSON(): Promise<IUserPayload> {
     return {
       id: this.id,
       email: this.email,

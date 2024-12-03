@@ -1,34 +1,26 @@
+import { Entity } from "typeorm";
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from "typeorm";
-import {
-  AuthEventEntity,
-  BaseEvent,
-  EventQueue,
-  EventStatus,
+  AuthServiceEventEntity,
   EventTopic,
-  UserPayload,
+  IAuthServiceEvent,
+  IUserPayload,
 } from "@eraczaptalk/zaptalk-common";
 
-interface AuthEventCreationAttributes {
-  payload: UserPayload;
+interface AuthServiceEventCreationAttributes {
+  payload: IUserPayload;
   topic: EventTopic;
 }
 
 @Entity()
-export class AuthEvent extends AuthEventEntity {
-  static build(attrs: AuthEventCreationAttributes) {
-    const authEvent = new AuthEvent();
+export class AuthServiceEvent extends AuthServiceEventEntity {
+  static build(attrs: AuthServiceEventCreationAttributes) {
+    const authEvent = new AuthServiceEvent();
     authEvent.payload = attrs.payload;
     authEvent.topic = attrs.topic;
     return authEvent;
   }
 
-  toJSON(): BaseEvent<UserPayload> {
+  toJSON(): IAuthServiceEvent {
     return {
       id: this.id,
       queue: this.queue,

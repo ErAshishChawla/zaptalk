@@ -9,7 +9,7 @@ import {
 } from "@eraczaptalk/zaptalk-common";
 
 import { User } from "../models/user";
-import { AuthEvent } from "../models/auth-event";
+import { AuthServiceEvent } from "../models/auth-service-event";
 
 import { routeMap } from "../utils/routeMap";
 import { AppDataSource } from "../utils/db";
@@ -61,7 +61,7 @@ router.post(routeMap.signup(), async (req: Request, res: Response) => {
 
       const userPayload = await newUser.toJSON();
 
-      const authEvent = AuthEvent.build({
+      const authEvent = AuthServiceEvent.build({
         topic: EventTopic.userCreated,
         payload: userPayload,
       });
