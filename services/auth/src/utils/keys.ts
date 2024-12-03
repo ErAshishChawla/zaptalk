@@ -29,6 +29,14 @@ export const keys: EnvKeys = {
     value: process.env.DB_NAME,
     required: true,
   },
+  RABBITMQ_HOST: {
+    value: process.env.RABBITMQ_HOST,
+    required: true,
+  },
+  RABBITMQ_PORT: {
+    value: process.env.RABBITMQ_PORT,
+    required: true,
+  },
   PORT: {
     value: process.env.PORT,
   },

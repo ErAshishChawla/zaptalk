@@ -1,4 +1,6 @@
-import { Roles, FileUploadStatus } from "@eraczaptalk/zaptalk-common";
+import { nanoid } from "nanoid";
+import { DateTime } from "luxon";
+import bcrypt from "bcryptjs";
 import {
   Entity,
   Column,
@@ -7,9 +9,13 @@ import {
   UpdateDateColumn,
   Index,
 } from "typeorm";
-import { nanoid } from "nanoid";
-import { DateTime } from "luxon";
-import bcrypt from "bcryptjs";
+
+import {
+  UserPayload,
+  Roles,
+  FileUploadStatus,
+  UserEntity,
+} from "@eraczaptalk/zaptalk-common";
 
 interface UserCreationAttributes {
   email: string;
@@ -17,65 +23,7 @@ interface UserCreationAttributes {
 }
 
 @Entity()
-export class User {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
-
-  @Index()
-  @Column({ unique: true })
-  email: string;
-
-  @Column()
-  password: string;
-
-  @Column({ nullable: true, default: null })
-  firstName?: string;
-
-  @Column({ nullable: true, default: null })
-  lastName?: string;
-
-  @Column("enum", { enum: Roles, default: Roles.USER })
-  role: Roles;
-
-  @Column("text", { nullable: true, default: null })
-  verificationToken?: string;
-
-  @Column("text", { nullable: true, default: null })
-  verificationTokenExpiry?: string;
-
-  @Column("text", { nullable: true, default: null })
-  resetPasswordToken?: string;
-
-  @Column("text", { nullable: true, default: null })
-  resetPasswordTokenExpiry?: string;
-
-  @Column("boolean", { default: false })
-  isVerified: boolean;
-
-  @Column("boolean", { default: false })
-  isDeactivated: boolean;
-
-  @Column("boolean", { default: false })
-  isRegistrationCompleted: boolean;
-
-  @Column({ nullable: true, default: null })
-  avatarKey?: string;
-
-  @Column("enum", { enum: FileUploadStatus, nullable: true, default: null })
-  avatarUploadStatus?: FileUploadStatus;
-
-  @Column("text", { default: "Hey there I''m using Zaptalk!" })
-  profileDescription: string;
-
-  @Column("int", { default: 0 })
-  version: number;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
+export class User extends UserEntity {
   static build(attrs: UserCreationAttributes) {
     const user = new User();
     user.email = attrs.email;
@@ -85,7 +33,7 @@ export class User {
     return user;
   }
 
-  toJSON() {
+  async toJSON(): Promise<UserPayload> {
     return {
       id: this.id,
       email: this.email,
@@ -95,11 +43,11 @@ export class User {
       isVerified: this.isVerified,
       isDeactivated: this.isDeactivated,
       isRegistrationCompleted: this.isRegistrationCompleted,
-      avatarKey: this.avatarKey,
-      avatarUploadStatus: this.avatarUploadStatus,
+      // TODO: Convert this to s3 presigned get url
+      avatar: this.avatarKey,
       profileDescription: this.profileDescription,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString(),
     };
   }
 }

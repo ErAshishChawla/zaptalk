@@ -33,6 +33,10 @@ spec:
               value: postgres
             - name: DB_PORT
               value: "5432"
+            - name: RABBITMQ_HOST
+              value: rabbitmq-srv
+            - name: RABBITMQ_PORT
+              value: "5672"
 ---
 # ClusterIP service for the auth service
 apiVersion: v1
@@ -78,6 +82,7 @@ spec:
               value: example
             # - name: POSTGRES_DB
             #   value: auth
+
           ports:
             - containerPort: 5432
 
@@ -95,3 +100,28 @@ spec:
       protocol: TCP
       port: 5432
       targetPort: 5432
+
+---
+# Auth RabbitMQ Consumer
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-events-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: auth-events-consumer
+  template:
+    metadata:
+      labels:
+        component: auth-events-consumer
+    spec:
+      containers:
+        - name: auth-events-consumer
+          image: erashishchawla/zaptalk/auth-events-consumer
+          env:
+            - name: RABBITMQ_HOST
+              value: rabbitmq-srv
+            - name: RABBITMQ_PORT
+              value: "5672"

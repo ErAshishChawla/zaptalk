@@ -2,16 +2,19 @@ import { Request, Router, Response } from "express";
 import {
   apiResponse,
   BadRequestError,
-  EventSubject,
+  EventTopic,
   RequestValidationError,
   SignupSchema,
+  RabbitMQ,
 } from "@eraczaptalk/zaptalk-common";
 
 import { User } from "../models/user";
-import { Outbox } from "../models/outbox";
+import { AuthEvent } from "../models/auth-event";
 
 import { routeMap } from "../utils/routeMap";
 import { AppDataSource } from "../utils/db";
+import { AuthProducer } from "../events/auth-producer";
+import { winstonLogger } from "../utils/logger.utils";
 
 const router = Router();
 
@@ -54,20 +57,34 @@ router.post(routeMap.signup(), async (req: Request, res: Response) => {
       // Save the user
       await transactionalEntityManager.save(newUser);
 
-      // Create an outbox event
-      const outboxEvent = Outbox.build({
-        subject: EventSubject.USER_SIGNUP,
-        payload: newUser.toJSON(),
+      winstonLogger.info("User created successfully");
+
+      const userPayload = await newUser.toJSON();
+
+      const authEvent = AuthEvent.build({
+        topic: EventTopic.userCreated,
+        payload: userPayload,
       });
 
       // Save the outbox event
-      await transactionalEntityManager.save(outboxEvent);
+      await transactionalEntityManager.save(authEvent);
+
+      winstonLogger.info("AuthEvent created successfully");
+
+      // Push the event to the queue
+      const authProducer = AuthProducer.getInstance();
+      authProducer.publish(authEvent.toJSON());
     }
   );
 
-  return res
-    .status(201)
-    .send(apiResponse({ statusCode: 201, data: newUser.toJSON() }));
+  const userPayload = await newUser.toJSON();
+
+  return res.status(201).send(
+    apiResponse({
+      statusCode: 201,
+      data: userPayload,
+    })
+  );
 });
 
 export { router as signupRouter };

@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import { User } from "../../models/user";
-import { Outbox } from "../../models/outbox";
+import { AuthEvent } from "../../models/auth-event";
 
 const AppDataSource = new DataSource({
   type: "postgres",
@@ -9,7 +9,7 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USER!,
   password: process.env.DB_PASSWORD!,
   database: process.env.DB_NAME!,
-  entities: [User, Outbox],
+  entities: [User, AuthEvent],
   synchronize: true,
 });
 
