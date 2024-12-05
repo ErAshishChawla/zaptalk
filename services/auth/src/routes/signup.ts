@@ -8,8 +8,7 @@ import {
   RabbitMQ,
 } from "@eraczaptalk/zaptalk-common";
 
-import { User } from "../models/user";
-import { AuthServiceEvent } from "../models/auth-service-event";
+import { User, AuthServiceEvent } from "@eraczaptalk/zaptalk-common";
 
 import { routeMap } from "../utils/routeMap";
 import { AppDataSource } from "../utils/db";
@@ -69,7 +68,7 @@ router.post(routeMap.signup(), async (req: Request, res: Response) => {
       // Save the outbox event
       await transactionalEntityManager.save(authEvent);
 
-      winstonLogger.info("AuthEvent created successfully");
+      winstonLogger.info("AuthEvent created successfully", authEvent);
 
       // Push the event to the queue
       const authProducer = AuthProducer.getInstance();

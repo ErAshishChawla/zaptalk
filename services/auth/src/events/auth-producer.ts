@@ -11,6 +11,8 @@ export class AuthProducer extends QueueProducer<IAuthServiceEvent> {
 
   private constructor(connection: Connection) {
     super(connection);
+
+    Object.setPrototypeOf(this, AuthProducer.prototype);
   }
 
   static async connect(connection: Connection) {

@@ -1,6 +1,5 @@
 import { DataSource } from "typeorm";
-import { User } from "../../models/user";
-import { AuthServiceEvent } from "../../models/auth-service-event";
+import { User, AuthServiceEvent } from "@eraczaptalk/zaptalk-common";
 
 const AppDataSource = new DataSource({
   type: "postgres",
