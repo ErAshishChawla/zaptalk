@@ -1,7 +1,8 @@
 import { RabbitMQ } from "@eraczaptalk/zaptalk-common";
+
 import { keys } from "./utils/keys";
 import { winstonLogger } from "./utils/logger";
-
+import { AppDataSource } from "./utils/db";
 import { AuthConsumer } from "./events/auth-consumer";
 
 async function start() {
@@ -17,14 +18,25 @@ async function start() {
     }
   });
 
+  // Connect to the database using typeorm
+  while (true) {
+    try {
+      await AppDataSource.initialize();
+      winstonLogger.info("Connected to the database");
+      break;
+    } catch (error) {
+      winstonLogger.error(
+        "Failed to connect to the database, retrying in 5 seconds"
+      );
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+  }
+
   // Connect to RabbitMQ
   const { RABBITMQ_HOST, RABBITMQ_PORT } = keys;
 
   while (true) {
     try {
-      // const rabbitmq = new RabbitMQ(
-      //   `amqp://${RABBITMQ_HOST.value}:${RABBITMQ_PORT.value}`
-      // );
       await RabbitMQ.connect(
         `amqp://${RABBITMQ_HOST.value}:${RABBITMQ_PORT.value}`
       );

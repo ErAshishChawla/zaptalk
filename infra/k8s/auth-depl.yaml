@@ -125,3 +125,44 @@ spec:
               value: rabbitmq-srv
             - name: RABBITMQ_PORT
               value: "5672"
+            - name: DB_HOST
+              value: auth-db-srv
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              value: example
+            - name: DB_NAME
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+
+---
+# Auth Cron Job
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-events-cron-consumer-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: auth-events-cron-consumer
+  template:
+    metadata:
+      labels:
+        component: auth-events-cron-consumer
+    spec:
+      containers:
+        - name: auth-events-cron-consumer
+          image: erashishchawla/zaptalk/auth-events-cron-consumer
+          env:
+            - name: DB_HOST
+              value: auth-db-srv
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              value: example
+            - name: DB_NAME
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
