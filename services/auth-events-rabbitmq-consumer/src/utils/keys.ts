@@ -29,4 +29,12 @@ export const keys: IEnvKeys = {
     value: process.env.DB_NAME,
     required: true,
   },
+  KAFKA_CLIENT_ID: {
+    value: process.env.KAFKA_CLIENT_ID,
+    required: true,
+  },
+  KAFKA_BROKERS: {
+    value: process.env.KAFKA_BROKERS,
+    required: true,
+  },
 };

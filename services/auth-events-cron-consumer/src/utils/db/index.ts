@@ -1,13 +1,17 @@
 import { DataSource } from "typeorm";
 import { AuthServiceEvent } from "@eraczaptalk/zaptalk-common";
 
+import { keys } from "../keys";
+
+const { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME } = keys;
+
 const AppDataSource = new DataSource({
   type: "postgres",
-  host: process.env.DB_HOST!,
-  port: parseInt(process.env.DB_PORT!),
-  username: process.env.DB_USER!,
-  password: process.env.DB_PASSWORD!,
-  database: process.env.DB_NAME!,
+  host: DB_HOST.value!,
+  port: parseInt(DB_PORT.value!),
+  username: DB_USER.value!,
+  password: DB_PASSWORD.value!,
+  database: DB_NAME.value!,
   entities: [AuthServiceEvent],
   synchronize: true,
 });

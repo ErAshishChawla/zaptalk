@@ -1,8 +1,8 @@
 import { RabbitMQ } from "@eraczaptalk/zaptalk-common";
 
 import { app } from "./app";
-import { AuthProducer } from "./events/auth-producer";
 
+import { AuthProducer } from "./events/auth-producer";
 import { AppDataSource } from "./utils/db";
 import { keys } from "./utils/keys";
 import { winstonLogger } from "./utils/logger.utils";
@@ -33,9 +33,8 @@ async function init() {
         winstonLogger.info("Connected to RabbitMQ");
 
         // Connect the producer
-        winstonLogger.info("Connecting to the producer");
         await AuthProducer.connect(rabbitmq);
-        winstonLogger.info("Connected to the producer");
+        winstonLogger.info("Connected the RabbitMQ Producer");
         break;
       } catch (error) {
         winstonLogger.error(

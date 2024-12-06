@@ -12,8 +12,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@eraczaptalk/zaptalk-common": "^1.0.46",
+    "@eraczaptalk/zaptalk-common": "^1.0.52",
     "amqplib": "^0.10.5",
+    "kafkajs": "^2.2.4",
     "luxon": "^3.5.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",

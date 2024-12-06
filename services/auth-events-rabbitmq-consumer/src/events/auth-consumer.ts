@@ -6,11 +6,13 @@ import {
   EventStatus,
   EventRetryLimits,
   EventLockDurationInMin,
+  EventTopic,
 } from "@eraczaptalk/zaptalk-common";
 import { Connection, ConsumeMessage } from "amqplib";
 import { AppDataSource } from "../utils/db";
 import { winstonLogger } from "../utils/logger";
 import { DateTime } from "luxon";
+import { authEventsKafkaSingleProducer } from "../kafka/producers";
 
 const EVENT_RETRY_LIMIT = EventRetryLimits[EventQueue.authQueue];
 const EVENT_LOCK_EXPIRATION = 2;
@@ -83,18 +85,10 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
         let isEventProcessed = false;
         try {
           await Promise.race([
-            new Promise<void>((resolve, reject) => {
-              const random = Math.floor(Math.random() * 10);
-              setTimeout(() => {
-                if (random % 2 === 0) {
-                  winstonLogger.info(`Event with id ${data.id} processed`);
-                  resolve();
-                } else {
-                  winstonLogger.error(`Event with id ${data.id} failed`);
-                  reject(new Error("Failed to process event"));
-                }
-              }, random * 10000);
-            }),
+            await authEventsKafkaSingleProducer.sendMessage(
+              existingEvent.topic,
+              existingEvent.payload
+            ),
             new Promise<void>((resolve, reject) => {
               setTimeout(() => {
                 winstonLogger.error(

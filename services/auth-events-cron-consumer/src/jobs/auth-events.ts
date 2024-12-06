@@ -34,8 +34,6 @@ export const consumeAuthEvents = async (batchSize: number) => {
       .take(Math.floor(batchSize * 0.7))
       .getMany();
 
-    console.log("pendingEvents", pendingEvents);
-
     // Get Failed events
     const failedEvents = await authServiceEventsRepository
       .createQueryBuilder("event")
@@ -44,7 +42,6 @@ export const consumeAuthEvents = async (batchSize: number) => {
       })
       .take(Math.floor(batchSize * 0.3))
       .getMany();
-    console.log("failedEvents", failedEvents);
 
     const combinedEvents = [...pendingEvents, ...failedEvents];
 

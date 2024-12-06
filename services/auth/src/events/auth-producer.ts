@@ -30,4 +30,15 @@ export class AuthProducer extends QueueProducer<IAuthServiceEvent> {
 
     return this.instance;
   }
+
+  async publish(event: IAuthServiceEvent) {
+    if (!this.channel) {
+      throw new Error("Channel not initialized");
+    }
+
+    this.channel.sendToQueue(
+      this.queueName,
+      Buffer.from(JSON.stringify(event))
+    );
+  }
 }

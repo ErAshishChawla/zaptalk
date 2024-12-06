@@ -19,7 +19,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@eraczaptalk/zaptalk-common": "^1.0.46",
+    "@eraczaptalk/zaptalk-common": "^1.0.52",
     "luxon": "^3.5.0",
     "node-cron": "^3.0.3",
     "pg": "^8.13.1",
