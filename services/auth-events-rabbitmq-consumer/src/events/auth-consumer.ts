@@ -12,7 +12,7 @@ import { Connection, ConsumeMessage } from "amqplib";
 import { AppDataSource } from "../utils/db";
 import { winstonLogger } from "../utils/logger";
 import { DateTime } from "luxon";
-import { authEventsKafkaSingleProducer } from "../kafka/producers";
+import { AuthEventsKafkaSingleProducer } from "../kafka/producers/auth-events-kafka-producer";
 
 const EVENT_RETRY_LIMIT = EventRetryLimits[EventQueue.authQueue];
 const EVENT_LOCK_EXPIRATION = 2;
@@ -83,6 +83,9 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
 
         // Now the event is in processing state, we will process the event
         let isEventProcessed = false;
+
+        const authEventsKafkaSingleProducer =
+          AuthEventsKafkaSingleProducer.getInstance();
         try {
           await Promise.race([
             await authEventsKafkaSingleProducer.sendMessage(
@@ -91,11 +94,8 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
             ),
             new Promise<void>((resolve, reject) => {
               setTimeout(() => {
-                winstonLogger.error(
-                  `Event with id ${data.id} failed due to timeout`
-                );
                 reject(new Error("Failed to process event"));
-              }, EVENT_LOCK_EXPIRATION * 60000 - 10000);
+              }, 10000);
             }),
           ]);
 
@@ -108,6 +108,7 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
 
         // Check if event is processed
         if (isEventProcessed) {
+          winstonLogger.info(`Event with id ${data.id} processed successfully`);
           await AppDataSource.transaction(
             async (transactionalEntityManager) => {
               existingEvent.status = EventStatus.COMPLETED;
@@ -121,6 +122,8 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
 
           ackCases.ack = true;
         } else {
+          winstonLogger.error(`Event with id ${data.id} failed to process`);
+
           const retryCount = existingEvent.retryCount;
           if (retryCount >= EVENT_RETRY_LIMIT) {
             await AppDataSource.transaction(

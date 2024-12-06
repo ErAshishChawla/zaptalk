@@ -13,11 +13,16 @@ Object.entries(keys).forEach(([key, value]) => {
   }
 });
 
-import { RabbitMQ } from "@eraczaptalk/zaptalk-common";
+import {
+  EventTopic,
+  KafkaAdminSetup,
+  RabbitMQ,
+} from "@eraczaptalk/zaptalk-common";
 
 import { AppDataSource } from "./utils/db";
 import { AuthConsumer } from "./events/auth-consumer";
-import { authEventsKafkaSingleProducer } from "./kafka/producers";
+import { AuthEventsKafkaSingleProducer } from "./kafka/producers/auth-events-kafka-producer";
+import { kafka } from "./kafka/kafka-instance";
 
 async function start() {
   // Connect to the database using typeorm
@@ -63,14 +68,37 @@ async function start() {
   await authConsumer.connectToQueue();
   winstonLogger.info("Connected the consumer to the queue");
 
+  // Kafka Admin Setup
+  while (true) {
+    try {
+      winstonLogger.info("Creating topics in Kafka");
+      const kafkaAdmin = new KafkaAdminSetup(kafka);
+
+      await kafkaAdmin.createTopics(Object.values(EventTopic));
+
+      winstonLogger.info("Created topics in Kafka");
+      break;
+    } catch (error) {
+      winstonLogger.error(error);
+      winstonLogger.error(
+        "Failed to create topics in Kafka, retrying in 5 seconds"
+      );
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+  }
+
   // Create a Kafka producer
+  AuthEventsKafkaSingleProducer.create(kafka);
 
   while (true) {
     try {
-      await authEventsKafkaSingleProducer.connect();
+      const producer = AuthEventsKafkaSingleProducer.getInstance();
+
+      await producer.connectProducer();
       winstonLogger.info("Connected to the Kafka broker");
       break;
     } catch (error) {
+      winstonLogger.error(error);
       winstonLogger.error(
         "Failed to connect to the Kafka broker, retrying in 5 seconds"
       );
