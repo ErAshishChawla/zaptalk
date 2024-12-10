@@ -12,7 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@eraczaptalk/zaptalk-common": "^1.0.56",
+    "@eraczaptalk/zaptalk-common": "^1.0.62",
     "amqplib": "^0.10.5",
     "kafkajs": "^2.2.4",
     "luxon": "^3.5.0",

@@ -1,17 +1,15 @@
 import {
   AuthServiceEvent,
-  EventRetryLimits,
+  EventQueueConfig,
   EventStatus,
   EventQueue,
-  EventLockDurationInMin,
 } from "@eraczaptalk/zaptalk-common";
-import { DateTime } from "luxon";
+import { DateTime, DurationLikeObject } from "luxon";
 
 import { AppDataSource } from "../utils/db";
 import { winstonLogger } from "../utils/logger";
-
-const EVENT_RETRY_LIMIT = EventRetryLimits[EventQueue.authQueue];
-const EVENT_LOCK_EXPIRATION = EventLockDurationInMin[EventQueue.authQueue];
+import { AuthEventsKafkaSingleProducer } from "../kafka/producers/auth-events-kafka-batch-producer";
+import { jobConfig } from "../utils/config";
 
 export const consumeAuthEvents = async (batchSize: number) => {
   try {
@@ -19,6 +17,7 @@ export const consumeAuthEvents = async (batchSize: number) => {
     const authServiceEventsRepository =
       AppDataSource.getRepository(AuthServiceEvent);
 
+    // Get Pending events
     const pendingEvents = await authServiceEventsRepository
       .createQueryBuilder("event")
       .where("event.status = :pendingStatus AND event.lockExpiration IS NULL", {
@@ -41,21 +40,25 @@ export const consumeAuthEvents = async (batchSize: number) => {
         failedStatus: EventStatus.FAILED,
       })
       .take(Math.floor(batchSize * 0.3))
+      .orderBy("RANDOM()")
       .getMany();
 
+    // Combine the pending and failed events
     const combinedEvents = [...pendingEvents, ...failedEvents];
 
+    // Check if there are any events to process
     if (combinedEvents.length === 0) {
       winstonLogger.info("No events found");
       return;
     }
 
-    // Update the events to processing
-    const results = await Promise.allSettled(
+    // Process events in parallel
+    await Promise.allSettled(
       combinedEvents.map(async (event): Promise<void> => {
+        // Lock the event
         await AppDataSource.transaction(async (transactionEntityManager) => {
           event.lockExpiration = DateTime.utc()
-            .plus({ minutes: EVENT_LOCK_EXPIRATION })
+            .plus(jobConfig.lockExpiration)
             .toJSDate();
           event.status = EventStatus.PROCESSING;
           await transactionEntityManager.save(event);
@@ -68,40 +71,35 @@ export const consumeAuthEvents = async (batchSize: number) => {
         winstonLogger.info(`Processing event with id ${event.id}`);
 
         let isEventProcessed = false;
+        const authEventsKafkaSingleProducer =
+          AuthEventsKafkaSingleProducer.getInstance();
+
+        // Process the event
         try {
           await Promise.race([
-            new Promise<void>((resolve, reject) => {
-              const random = Math.floor(Math.random() * 10);
+            await authEventsKafkaSingleProducer.sendMessage(
+              event.topic,
+              event.payload
+            ),
+            new Promise((resolve, reject) => {
               setTimeout(() => {
-                if (random % 2 === 0) {
-                  winstonLogger.info(`Event with id ${event.id} processed`);
-                  resolve();
-                } else {
-                  winstonLogger.error(`Event with id ${event.id} failed`);
-                  reject(new Error("Failed to process event"));
-                }
-              }, random * 10000);
-            }),
-            new Promise<void>((resolve, reject) => {
-              setTimeout(() => {
-                winstonLogger.error(
-                  `Event with id ${event.id} failed due to timeout`
-                );
-                reject(new Error("Failed to process event"));
-              }, EVENT_LOCK_EXPIRATION * 60000 - 10000);
+                reject(new Error("Event processing Timeout"));
+              }, jobConfig.timeoutMs);
             }),
           ]);
-
           isEventProcessed = true;
+          winstonLogger.info(
+            `Event with id ${event.id} processed successfully`
+          );
         } catch (error) {
           winstonLogger.error(
-            `Failed to process event with id ${event.id}`,
-            error
+            `Error processing event: ${error} due to processing`
           );
         }
 
         // Check if event is processed
         if (isEventProcessed) {
+          // Update the event status to completed
           await AppDataSource.transaction(async (transactionEntityManager) => {
             event.status = EventStatus.COMPLETED;
             event.lockExpiration = null;
@@ -112,7 +110,7 @@ export const consumeAuthEvents = async (batchSize: number) => {
           });
         } else {
           // Check if the event has reached the retry limit
-          if (event.retryCount >= EVENT_RETRY_LIMIT) {
+          if (event.retryCount >= jobConfig.retryLimit) {
             await AppDataSource.transaction(
               async (transactionEntityManager) => {
                 event.status = EventStatus.FAILED;
@@ -138,12 +136,8 @@ export const consumeAuthEvents = async (batchSize: number) => {
             );
           });
         }
-
-        return;
       })
     );
-
-    console.log(results);
   } catch (error) {
     winstonLogger.error("Failed to consume the events", error);
   }

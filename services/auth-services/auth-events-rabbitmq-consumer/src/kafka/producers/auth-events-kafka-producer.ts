@@ -5,15 +5,16 @@ import {
 import { Kafka } from "kafkajs";
 
 export class AuthEventsKafkaSingleProducer extends KafkaSingleProducer<AuthServiceEvent> {
-  static _instance: AuthEventsKafkaSingleProducer;
+  static _instance: AuthEventsKafkaSingleProducer | null = null;
 
   private constructor(kafka: Kafka) {
     super(kafka);
   }
 
   static create(kafka: Kafka) {
-    if (!this._instance) {
-      this._instance = new AuthEventsKafkaSingleProducer(kafka);
+    if (!AuthEventsKafkaSingleProducer._instance) {
+      AuthEventsKafkaSingleProducer._instance =
+        new AuthEventsKafkaSingleProducer(kafka);
       return;
     }
 
@@ -21,10 +22,10 @@ export class AuthEventsKafkaSingleProducer extends KafkaSingleProducer<AuthServi
   }
 
   static getInstance(): AuthEventsKafkaSingleProducer {
-    if (!this._instance) {
+    if (!AuthEventsKafkaSingleProducer._instance) {
       throw new Error("Producer is not created");
     }
 
-    return this._instance;
+    return AuthEventsKafkaSingleProducer._instance;
   }
 }

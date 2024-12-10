@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: auth
-          image: erashishchawla/zaptalk/auth
+          image: erashishchawla/zaptalk/auth-services/auth
           ports:
             - containerPort: 3000
           env:
@@ -119,7 +119,7 @@ spec:
     spec:
       containers:
         - name: auth-events-rabbitmq-consumer
-          image: erashishchawla/zaptalk/auth-events-rabbitmq-consumer
+          image: erashishchawla/zaptalk/auth-services/auth-events-rabbitmq-consumer
           env:
             - name: RABBITMQ_HOST
               value: rabbitmq-srv
@@ -158,7 +158,7 @@ spec:
     spec:
       containers:
         - name: auth-events-cron-consumer
-          image: erashishchawla/zaptalk/auth-events-cron-consumer
+          image: erashishchawla/zaptalk/auth-services/auth-events-cron-consumer
           env:
             - name: DB_HOST
               value: auth-db-srv

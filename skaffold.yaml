@@ -14,24 +14,24 @@ build:
         manual:
           - src: "**/*.ts"
             dest: .
-    - image: erashishchawla/zaptalk/auth
-      context: services/auth
+    - image: erashishchawla/zaptalk/auth-services/auth
+      context: services/auth-services/auth
       docker:
         dockerfile: Dockerfile
       sync:
         manual:
           - src: "**/*.ts"
             dest: .
-    - image: erashishchawla/zaptalk/auth-events-rabbitmq-consumer
-      context: services/auth-events-rabbitmq-consumer
+    - image: erashishchawla/zaptalk/auth-services/auth-events-rabbitmq-consumer
+      context: services/auth-services/auth-events-rabbitmq-consumer
       docker:
         dockerfile: Dockerfile
       sync:
         manual:
           - src: "**/*.ts"
             dest: .
-    - image: erashishchawla/zaptalk/auth-events-cron-consumer
-      context: services/auth-events-cron-consumer
+    - image: erashishchawla/zaptalk/auth-services/auth-events-cron-consumer
+      context: services/auth-services/auth-events-cron-consumer
       docker:
         dockerfile: Dockerfile
       sync:

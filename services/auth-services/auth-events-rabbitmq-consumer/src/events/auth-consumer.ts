@@ -4,18 +4,14 @@ import {
   IAuthServiceEvent,
   AuthServiceEvent,
   EventStatus,
-  EventRetryLimits,
-  EventLockDurationInMin,
-  EventTopic,
 } from "@eraczaptalk/zaptalk-common";
 import { Connection, ConsumeMessage } from "amqplib";
+import { DateTime } from "luxon";
+
 import { AppDataSource } from "../utils/db";
 import { winstonLogger } from "../utils/logger";
-import { DateTime } from "luxon";
+import { jobConfig } from "../utils/config";
 import { AuthEventsKafkaSingleProducer } from "../kafka/producers/auth-events-kafka-producer";
-
-const EVENT_RETRY_LIMIT = EventRetryLimits[EventQueue.authQueue];
-const EVENT_LOCK_EXPIRATION = 2;
 
 export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
   queueName: EventQueue = EventQueue.authQueue;
@@ -72,7 +68,7 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
         await AppDataSource.transaction(async (transactionalEntityManager) => {
           existingEvent.status = EventStatus.PROCESSING;
           existingEvent.lockExpiration = DateTime.utc()
-            .plus({ minutes: EVENT_LOCK_EXPIRATION })
+            .plus(jobConfig.lockExpiration)
             .toJSDate();
           await transactionalEntityManager.save(existingEvent);
         });
@@ -95,7 +91,7 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
             new Promise<void>((resolve, reject) => {
               setTimeout(() => {
                 reject(new Error("Failed to process event"));
-              }, 10000);
+              }, jobConfig.timeoutMs);
             }),
           ]);
 
@@ -125,7 +121,7 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
           winstonLogger.error(`Event with id ${data.id} failed to process`);
 
           const retryCount = existingEvent.retryCount;
-          if (retryCount >= EVENT_RETRY_LIMIT) {
+          if (retryCount >= jobConfig.retryLimit) {
             await AppDataSource.transaction(
               async (transactionalEntityManager) => {
                 existingEvent.status = EventStatus.FAILED;
