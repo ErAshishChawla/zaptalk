@@ -23,7 +23,7 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@eraczaptalk/zaptalk-common": "^1.0.62",
+    "@eraczaptalk/zaptalk-common": "^1.0.67",
     "amqplib": "^0.10.5",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",

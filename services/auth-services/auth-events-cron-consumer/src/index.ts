@@ -18,19 +18,13 @@ Object.entries(keys).forEach(([key, value]) => {
 });
 
 import nodecron, { validate } from "node-cron";
-import {
-  EventQueueConfig,
-  EventQueue,
-  KafkaAdminSetup,
-  EventTopic,
-} from "@eraczaptalk/zaptalk-common";
+import { KafkaAdminSetup, EventTopic } from "@eraczaptalk/zaptalk-common";
 
 import { AppDataSource } from "./utils/db";
 import { consumeAuthEvents } from "./jobs/auth-events";
 import { AuthEventsKafkaSingleProducer } from "./kafka/producers/auth-events-kafka-batch-producer";
 import { kafka } from "./kafka/kafka-instance";
-
-const jobConfig = EventQueueConfig[EventQueue.authQueue];
+import { jobConfig, jobDescription, jobSchedule } from "./utils/config";
 
 async function init() {
   // Connect to the database
@@ -82,16 +76,13 @@ async function init() {
   }
 
   // Start the cron job
-  nodecron.schedule(
-    validate(jobConfig.jobSchedule) ? jobConfig.jobSchedule : "*/60 * * * * *",
-    () => {
-      winstonLogger.info(
-        `Running the cron job: ${jobConfig.jobSchedule || "Every 60 seconds"}`
-      );
+  nodecron.schedule(jobSchedule, () => {
+    winstonLogger.info(
+      `Starting cron job: ${jobDescription} with schedule: ${jobSchedule}`
+    );
 
-      consumeAuthEvents(20);
-    }
-  );
+    consumeAuthEvents(jobConfig.batchSize);
+  });
 }
 
 init();

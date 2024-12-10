@@ -91,7 +91,7 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
             new Promise<void>((resolve, reject) => {
               setTimeout(() => {
                 reject(new Error("Failed to process event"));
-              }, jobConfig.timeoutMs);
+              }, jobConfig.eventTimeoutMs);
             }),
           ]);
 
@@ -121,7 +121,7 @@ export class AuthConsumer extends QueueConsumer<IAuthServiceEvent> {
           winstonLogger.error(`Event with id ${data.id} failed to process`);
 
           const retryCount = existingEvent.retryCount;
-          if (retryCount >= jobConfig.retryLimit) {
+          if (retryCount >= jobConfig.eventRetryLimit) {
             await AppDataSource.transaction(
               async (transactionalEntityManager) => {
                 existingEvent.status = EventStatus.FAILED;

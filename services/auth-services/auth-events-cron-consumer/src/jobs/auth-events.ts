@@ -84,7 +84,7 @@ export const consumeAuthEvents = async (batchSize: number) => {
             new Promise((resolve, reject) => {
               setTimeout(() => {
                 reject(new Error("Event processing Timeout"));
-              }, jobConfig.timeoutMs);
+              }, jobConfig.eventTimeoutMs);
             }),
           ]);
           isEventProcessed = true;
@@ -110,7 +110,7 @@ export const consumeAuthEvents = async (batchSize: number) => {
           });
         } else {
           // Check if the event has reached the retry limit
-          if (event.retryCount >= jobConfig.retryLimit) {
+          if (event.retryCount >= jobConfig.eventRetryLimit) {
             await AppDataSource.transaction(
               async (transactionEntityManager) => {
                 event.status = EventStatus.FAILED;
