@@ -1,0 +1,2 @@
+1. Skip the sendgrid hooks for notifications, kafka will have a batch consumer
+it will insert the data to db and then queue. they will send the mail to sendgrid. We will ignore our db failuer

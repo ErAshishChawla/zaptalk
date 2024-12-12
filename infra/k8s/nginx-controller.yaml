@@ -9,8 +9,8 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: zaptalk.com
-      http:
+    # - host: zaptalk.com
+    - http:
         paths:
           - path: /api/?(.*)
             pathType: ImplementationSpecific
